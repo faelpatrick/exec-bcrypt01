@@ -20,13 +20,14 @@ class UsersController {
 
             //Criptograph password
             const encryptedPassword = await createPasswordHash(password);
-            console.log(encryptedPassword);
+
             const newUser = await User.create({
                 email: email,
                 password: encryptedPassword
             });
 
             return res.status(201).json(newUser);
+
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: "Internal server error." });
@@ -47,17 +48,29 @@ class UsersController {
 
     async update(req, res) {
         try {
-            const { email } = req.body;
+            const { id } = req.params;
+            const { email, password } = req.body;
+            const user = await User.findById(id);
+            if (!user) return res.status(404).json();
+            const encryptedPassword = await createPasswordHash(password);
+            await user.updateOne({ email, password: encryptedPassword });
+            return res.status(200).json();
         } catch (error) {
-
+            console.error(error);
+            return res.status(500).json({ error: "Internal server error." });
         }
     }
 
     async delete(req, res) {
         try {
-            const { email } = req.body;
+            const { id } = req.params;
+            const user = await User.findById(id);
+            if (!user) return res.status(404).json();
+            await user.deleteOne();
+            return res.status(200).json();
         } catch (error) {
-
+            console.error(error);
+            return res.status(500).json({ error: "Internal server error." });
         }
     }
 
